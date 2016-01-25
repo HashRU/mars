@@ -1,0 +1,11 @@
+---
+ansible_host: mars.kassala.de
+ansible_user: ansible
+ansible_port: 22
+ansible_python_interpreter: /usr/bin/python2
+
+www_user: http
+
+lets_encrypt_domains:
+    - www.mars.kassala.de
+    - mars.kassala.de

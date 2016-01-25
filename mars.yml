@@ -1,0 +1,4 @@
+---
+- hosts: mars
+  roles:
+    - base
