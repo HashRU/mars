@@ -6,3 +6,12 @@
     - tmux
     - htop
     - vim
+    - pkgfile
+    - pacmatic
+    - mosh
+    - net-tools
+    - nload
+
+- name: Run pkgfile --update
+  become: yes
+  command: pkgfile --update
