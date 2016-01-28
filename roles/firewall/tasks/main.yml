@@ -1,0 +1,22 @@
+---
+- name: Install ufw
+  become: yes
+  pacman: name=ufw state=present update_cache=yes
+
+- name: set deny policy
+  become: yes
+  ufw: policy=deny
+
+- name: set all allow rules
+  become: yes
+  ufw: direction=in rule=allow proto={{ item.proto }} port={{ item.port }}
+  with_items:
+    - { proto: tcp, port: 22 } #ssh
+
+- name: enable ufw itself
+  become: yes
+  ufw: state=enabled
+
+- name: Start and enable ufw
+  become: yes
+  service: name=ufw state=started enabled=yes
