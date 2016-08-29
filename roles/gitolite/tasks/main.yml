@@ -1,0 +1,46 @@
+---
+- name: Install gitolite
+  become: yes
+  pacman: name={{ item }} state=present update_cache=yes
+  with_items:
+    - gitolite
+
+- name: get gitolite home
+  become: yes
+  shell: >
+    getent passwd {{ gitolite_user }} | cut -d: -f6
+  changed_when: false
+  register: gitolite_home
+
+- name: copy admin.pub to server
+  become: yes
+  become_user: "{{ gitolite_user }}"
+  copy: src={{ gitolite_admin_key }} dest={{ gitolite_home.stdout }}/{{ gitolite_admin_key }}
+
+- name: setup gitolite
+  become: yes
+  become_user: "{{ gitolite_user }}"
+  command: gitolite setup -pk {{ gitolite_admin_key }}
+  args:
+    chdir: "{{ gitolite_home.stdout }}"
+
+- name: transfer repositories
+  become: yes
+  become_user: "{{ gitolite_user }}"
+  unarchive: src={{ item }}.tar.xz dest={{ gitolite_home.stdout }}/repositories/ creates={{ gitolite_home.stdout }}/repositories/{{ item }}.git
+  with_items:
+    "{{ gitolite_repositories|default([]) }}"
+
+- name: force push old administration
+  local_action: command git push -f gitolite@{{ ansible_default_ipv4.address }}:gitolite-admin master
+  args:
+    chdir: "{{ gitolite_admin_repo }}"
+  when: gitolite_repositories is defined
+
+- name: reconfigure gitolite
+  become: yes
+  become_user: "{{ gitolite_user }}"
+  command: gitolite setup
+  args:
+    chdir: "{{ gitolite_home.stdout }}"
+  when: gitolite_repositories is defined
